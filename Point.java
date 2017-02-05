@@ -9,7 +9,9 @@
  ******************************************************************************/
 
 import java.util.Comparator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
 import edu.princeton.cs.algs4.StdDraw;
 
 public class Point implements Comparable<Point> {
@@ -63,11 +65,12 @@ public class Point implements Comparable<Point> {
         boolean sameX = that.x == x,
                 sameY = that.y == y,
                 sameP = sameX && sameY;
+
         return sameP
             ? Double.NEGATIVE_INFINITY
             : sameX
                 ? Double.POSITIVE_INFINITY
-                : sameY ? +0.0 : (that.y - y) / (that.x - x);
+                : sameY ? +0.0 : (that.y - y) / (double)(that.x - x);
     }
 
     /**
