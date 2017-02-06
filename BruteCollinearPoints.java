@@ -18,7 +18,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 
 public class BruteCollinearPoints {
-    private ArrayList<LineSegment> _segments= new ArrayList<LineSegment>();
+    private ArrayList<LineSegment> segments = new ArrayList<LineSegment>();
 
     // finds all line segments containing 4 points
     public BruteCollinearPoints(Point[] points) {
@@ -57,7 +57,7 @@ public class BruteCollinearPoints {
                             double slopeL = curr.slopeTo(points[l]);
 
                             if (hasSameSlope(slope, slopeL)) {
-                                _segments.add(new LineSegment(curr, points[l]));
+                                segments.add(new LineSegment(curr, points[l]));
                                 break;
                             }
                         }
@@ -83,7 +83,7 @@ public class BruteCollinearPoints {
      * @return the integer of line segments
      */
     public int numberOfSegments() {
-        return _segments.size();
+        return segments.size();
     }
 
     /**
@@ -91,7 +91,7 @@ public class BruteCollinearPoints {
      * @return the line segments
      */
     public LineSegment[] segments() {
-        return _segments.toArray(new LineSegment[_segments.size()]);
+        return segments.toArray(new LineSegment[segments.size()]);
     }
 
 

@@ -70,7 +70,7 @@ public class Point implements Comparable<Point> {
             ? Double.NEGATIVE_INFINITY
             : sameX
                 ? Double.POSITIVE_INFINITY
-                : sameY ? +0.0 : (that.y - y) / (double)(that.x - x);
+                : sameY ? +0.0 : (that.y - y) / (double) (that.x - x);
     }
 
     /**
