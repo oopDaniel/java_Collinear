@@ -49,7 +49,7 @@ public class FastCollinearPoints {
             points[i] = inPoints[i];
         }
 
-        Arrays.sort(points);
+        // Arrays.sort(points);
 
         for (int i = 0; i < len; ++i) {
             curr = points[i];
@@ -57,24 +57,38 @@ public class FastCollinearPoints {
             // Default using merge sort for sorting objects in Java, O(n * log(n))
             Arrays.sort(points, i, len, curr.slopeOrder());
 
+
+            // System.out.println("~~~~~~~~~~~~~~~~~~~~~~~");
+            // for (int j = i; j < len; ++j) {
+            //     System.out.println("Point: " + points[j] + ", SlopeTo:" + curr.slopeTo(points[j]));
+            // }
+            // System.out.println("~~~~~~~~~~~~~~~~~~~~~~~");
+
             next = i + 1;
             if (next < len && curr.slopeTo(points[next]) == Double.NEGATIVE_INFINITY) {
                 throw new java.lang.IllegalArgumentException();
             }
 
-            for (; next < len; next++) {
+            // System.out.println(">>> curr point: " + curr);
+
+            for (; next < len;) {
                 int begin = next;
                 count = 1; // Current point
                 slope = curr.slopeTo(points[next]);
+                // System.out.println(" Slope: " + slope);
 
                 do {
+                    // System.out.println(" - step on " + points[next]);
                     ++count;
                     ++next;
                 } while (next < len && hasSameSlope(slope, curr.slopeTo(points[next])));
 
-                if (count > 1) {
-                    Arrays.sort(points, begin, next--);
+                if (count > 2) {
+                    Arrays.sort(points, begin, next);
+                    --next;
                 }
+
+                // System.out.println(" count: "+count+", next: "+next);
 
                 // At least 4 points
                 if (count > 3) {
@@ -84,18 +98,33 @@ public class FastCollinearPoints {
                         initialPoints = new ArrayList<Point>();
                     }
 
+                    // for (int ii = begin; ii < next + 1; ii++) {
+                    //     System.out.println("P:" + points[ii] + ", slope: "+ curr.slopeTo(points[ii]));
+                    // }
+
                     segmentPoints[0] = curr;
                     segmentPoints[1] = points[begin];
                     segmentPoints[2] = points[next];
                     Arrays.sort(segmentPoints);
 
                     for (Point p : initialPoints) {
+                        // System.out.println("init points: " + p + ", slope: " + slope);
                         // Has the same slope to the initial point, thus collinear
-                        if (hasSameSlope(slope, segmentPoints[0].slopeTo(p))) isDuplicated = true;
+                        if (hasSameSlope(slope, segmentPoints[0].slopeTo(p)) ||
+                            hasSameSlope(slope, segmentPoints[2].slopeTo(p))) {
+                            isDuplicated = true;
+                            break;
+                        }
                     }
 
+                    // for (Point p : segmentPoints) {
+                    //     System.out.println("seg points: " + p );
+                    // }
+
                     if (!isDuplicated) {
+                        // System.out.println("@@ no Duplicated!! will save" + segmentPoints[0] + segmentPoints[2]);
                         initialPoints.add(segmentPoints[0]);
+                        initialPoints.add(segmentPoints[2]);
                         slopes.put(slope, initialPoints);
                         segments.add(new LineSegment(segmentPoints[0], segmentPoints[2]));
                     }
@@ -112,9 +141,8 @@ public class FastCollinearPoints {
      * @return the boolean representation of the same slope
      */
     private boolean hasSameSlope(double s1, double s2) {
-        if (s1 == Double.POSITIVE_INFINITY && s2 == Double.POSITIVE_INFINITY)
-            return true;
-        return s1 * s2 >= 0 && Math.abs(s1 - s2) <= 0.000001;
+        return (s1 == Double.POSITIVE_INFINITY && s2 == Double.POSITIVE_INFINITY)
+            || (s1 * s2 >= 0 && Math.abs(s1 - s2) <= 0.000001);
     }
 
     /**
@@ -161,7 +189,5 @@ public class FastCollinearPoints {
             segment.draw();
         }
         StdDraw.show();
-
-        StdOut.println("// end");
     }
 }
