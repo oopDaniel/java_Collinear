@@ -19,31 +19,33 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class BruteCollinearPoints {
     private ArrayList<LineSegment> segments = new ArrayList<LineSegment>();
+    private Point[] points;
 
     // finds all line segments containing 4 points
-    public BruteCollinearPoints(Point[] points) {
-        if (points == null) throw new java.lang.NullPointerException();
+    public BruteCollinearPoints(Point[] inPoints) {
+        if (inPoints == null) throw new java.lang.NullPointerException();
 
-        int len = points.length;
+        int len = inPoints.length;
         double slope;
         Point curr;
+        points = new Point[len];
 
         for (int i = 0; i < len; ++i) {
             // check null points
-            if (points[i] == null) {
+            if (inPoints[i] == null) {
                 throw new java.lang.NullPointerException();
             }
-
-            // check duplicate points
-            if (i + 1 < len && points[i].compareTo(points[i + 1]) == 0) {
-                throw new java.lang.IllegalArgumentException();
-            }
+            points[i] = inPoints[i];
         }
 
         Arrays.sort(points);
 
-        for (int i = 0; i < len - 3; ++i) {
+        for (int i = 0; i < len; ++i) {
             curr = points[i];
+
+            if (i + 1 < len && curr.slopeTo(points[i + 1]) == Double.NEGATIVE_INFINITY) {
+                throw new java.lang.IllegalArgumentException();
+            }
 
             for (int j = i + 1; j < len - 2; ++j) {
                 slope = curr.slopeTo(points[j]);
@@ -75,6 +77,8 @@ public class BruteCollinearPoints {
      * @return the boolean representation of the same slope
      */
     private boolean hasSameSlope(double s1, double s2) {
+        if (s1 == Double.POSITIVE_INFINITY && s2 == Double.POSITIVE_INFINITY)
+            return true;
         return s1 * s2 >= 0 && Math.abs(s1 - s2) <= 0.000001;
     }
 

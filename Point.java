@@ -110,10 +110,14 @@ public class Point implements Comparable<Point> {
 
     private class SlopeOrder implements Comparator<Point> {
         public int compare(Point p, Point q) {
-            double result = slopeTo(p) - slopeTo(q);
-            return result == 0
-                ? 0
-                : result > 0 ? 1 : -1;
+            double slopeP = slopeTo(p),
+                   slopeQ = slopeTo(q);
+
+            return (slopeP == Double.POSITIVE_INFINITY && slopeQ == Double.POSITIVE_INFINITY)
+                || (slopeP == Double.NEGATIVE_INFINITY && slopeQ == Double.NEGATIVE_INFINITY)
+                || (slopeP * slopeQ >= 0 && Math.abs(slopeP - slopeQ) <= 0.0000001)
+                    ? 0
+                    : slopeP > slopeQ ? 1 : -1;
         }
     }
 
@@ -135,25 +139,37 @@ public class Point implements Comparable<Point> {
      */
     public static void main(String[] args) {
 
-        Point p1 = new Point(1, 2);
-        Point p2 = new Point(1, 3);
-        Point p3 = new Point(2, -2);
-        Point p4 = new Point(2, 2);
-        Point p5 = new Point(1, 2);
+        // Point p1 = new Point(1, 2);
+        // Point p2 = new Point(1, 3);
+        // Point p3 = new Point(2, -2);
+        // Point p4 = new Point(2, 2);
+        // Point p5 = new Point(1, 2);
+
+
+        Point p = new Point(9, 9);
+        Point q = new Point(9, 9);
+        Point r = new Point(9, 9);
 
         List<Point> points = new ArrayList<Point>();
 
-        points.add(p1);
-        points.add(p2);
-        points.add(p3);
-        points.add(p4);
-        points.add(p5);
+        points.add(p);
+        points.add(q);
+        points.add(r);
 
-        Collections.sort(points);
+        Collections.sort(points, p.slopeOrder());
 
-        int i = 0;
-        for (Point p: points) {
-            System.out.println("point " + ++i + " : " + p);
+        // points.add(p1);
+        // points.add(p2);
+        // points.add(p3);
+        // points.add(p4);
+        // points.add(p5);
+
+        // Collections.sort(points);
+
+        // int i = 0;
+        for (Point pe: points) {
+            System.out.println("point "  + " : " + pe);
+            // System.out.println("point " + ++i + " : " + p);
         }
     }
 }

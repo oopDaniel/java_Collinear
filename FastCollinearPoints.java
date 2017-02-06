@@ -24,38 +24,40 @@ public class FastCollinearPoints {
     private ArrayList<LineSegment> segments = new ArrayList<LineSegment>();
 
     // Determine the segment and its initial point
+    private Point[] points;
     private Point[] segmentPoints = new Point[3];
 
     // Slope and initial points for each line
     private HashMap<Double, ArrayList<Point>> slopes = new HashMap<Double, ArrayList<Point>>();
 
     // Finds all line segments containing at least 4 points
-    public FastCollinearPoints(Point[] points) {
-        if (points == null) throw new java.lang.NullPointerException();
+    public FastCollinearPoints(Point[] inPoints) {
+        if (inPoints == null) throw new java.lang.NullPointerException();
 
-        int    len = points.length,
+        int    len = inPoints.length,
                count,
                next;
         double slope;
         Point  curr;
+        points = new Point[len];
 
         // check null points
         for (int i = 0; i < len; ++i) {
-            if (points[i] == null) {
+            if (inPoints[i] == null) {
                 throw new java.lang.NullPointerException();
             }
+            points[i] = inPoints[i];
         }
 
         Arrays.sort(points);
 
-        for (int i = 0; i < len - 3; ++i) {
+        for (int i = 0; i < len; ++i) {
             curr = points[i];
 
             // Default using merge sort for sorting objects in Java, O(n * log(n))
             Arrays.sort(points, i, len, curr.slopeOrder());
 
             next = i + 1;
-
             if (next < len && curr.slopeTo(points[next]) == Double.NEGATIVE_INFINITY) {
                 throw new java.lang.IllegalArgumentException();
             }
@@ -89,7 +91,7 @@ public class FastCollinearPoints {
 
                     for (Point p : initialPoints) {
                         // Has the same slope to the initial point, thus collinear
-                        if (segmentPoints[0].slopeTo(p) == slope) isDuplicated = true;
+                        if (hasSameSlope(slope, segmentPoints[0].slopeTo(p))) isDuplicated = true;
                     }
 
                     if (!isDuplicated) {
