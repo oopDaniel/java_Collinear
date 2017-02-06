@@ -21,8 +21,9 @@ import edu.princeton.cs.algs4.StdOut;
 
 
 public class FastCollinearPoints {
-    private ArrayList<LineSegment> _segments= new ArrayList<LineSegment>();
-    private HashMap<Double, Integer> _slopes = new HashMap<Double, Integer>();
+    private ArrayList<LineSegment> _segments = new ArrayList<LineSegment>();
+    private Point[] smallArr = new Point[3];
+    private HashMap<Double, ArrayList<Point>> _slopes = new HashMap<Double, ArrayList<Point>>();
 
     // finds all line segments containing 4 points
     public FastCollinearPoints(Point[] points) {
@@ -36,66 +37,80 @@ public class FastCollinearPoints {
 
         for (int i = 0; i < len; ++i) {
             curr = points[i];
+
             // check null points
             if (curr == null) {
                 throw new java.lang.NullPointerException();
             }
 
-            // check duplicate points
-            if (i + 1 < len && curr.compareTo(points[i + 1]) == 0) {
-                throw new java.lang.IllegalArgumentException();
-            }
+            // // check duplicate points
+            // if (i + 1 < len && curr.compareTo(points[i + 1]) == 0) {
+            //     throw new java.lang.IllegalArgumentException();
+            // }
         }
 
         Arrays.sort(points);
-
 
         for (int i = 0; i < len - 3; ++i) {
             curr = points[i];
 
             // Default using merge sort for sorting objects in Java, O(n * log(n))
-            Arrays.sort(points, 0, len, curr.slopeOrder());
+            Arrays.sort(points, i, len, curr.slopeOrder());
 
-            System.out.println("- now inner points:");
-            for (int index = 0; index < len; ++index) {
-                System.out.println(" " + points[index]+ curr.slopeTo(points[index]));
+            // System.out.println("- now inner points:");
+            for (int index = i; index < len; ++index) {
+                // System.out.println(" " + points[index]+ curr.slopeTo(points[index]));
             }
-            System.out.println("======");
+            // System.out.println("======");
 
-            System.out.println("~~~~~~restart i = " + i + "~~~~~~~~");
+            // System.out.println("~~~~~~restart i = " + i + "~~~~~~~~");
 
-            next = 0;
-            for (; next < len; next++) {
+            for (next = i + 1; next < len; next++) {
+                int begin = next;
                 count = 1; // Current point plus the next one
                 slope = curr.slopeTo(points[next]);
 
-                System.out.println("curr point = " + curr + "; next point = " + points[next]);
-                System.out.println("now next = " + next);
-                System.out.println("slope = " + slope);
+                // System.out.println("curr point = " + curr + "; next point = " + points[next]);
+                // System.out.println("The new next = " + next + ", slope = " + slope);
 
-                while (next < len && hasSameSlope(slope, curr.slopeTo(points[next]))) {
-                    System.out.println("step on " + points[next]);
+
+                do {
+                    // System.out.println(" - step on " + points[next]);
                     ++count;
                     ++next;
+                } while (next < len && hasSameSlope(slope, curr.slopeTo(points[next])));
+
+                if (count > 1) {
+                    Arrays.sort(points, begin, next--);
                 }
 
-                if (count > 1) next --;
 
-                System.out.println("count " + count +  " " + next);
+                // System.out.println("count: " + count +  ", next: " + next);
 
                 // At least 4 points
                 if (count > 3) {
-                    System.out.println("><><>< next: " + next + ", saved" + curr + " " + points[next]);
-                    Integer prevCount = _slopes.get(slope);
-                    if (prevCount == null || prevCount < count) {
-                        System.out.println("!!!!perv the slope" + slope);
-                        _segments.add(new LineSegment(curr, points[next]));
-                        _slopes.put(slope, count);
-                    } else {
-                        System.out.println("!!!!sorry");
+
+                    smallArr[0] = curr;
+                    smallArr[1] = points[begin];
+                    smallArr[2] = points[next];
+                    Arrays.sort(smallArr);
+
+                    ArrayList<Point> tmp = _slopes.get(slope);
+                    if (tmp == null) {
+                        tmp = new ArrayList<Point>();
                     }
-                } else {
-                    System.out.println("(bad)");
+
+                    boolean isDuplicated = false;
+                    for (Point p : tmp) {
+                        // Has the same slope to the initial point, thus collinear
+                        if (smallArr[0].slopeTo(p) == slope) isDuplicated = true;
+                    }
+
+                    if (!isDuplicated) {
+                        tmp.add(smallArr[0]);
+                        _slopes.put(slope, tmp);
+                        _segments.add(new LineSegment(smallArr[0], smallArr[2]));
+                    }
                 }
             }
 
@@ -111,6 +126,8 @@ public class FastCollinearPoints {
      * @return the boolean representation of the same slope
      */
     private boolean hasSameSlope(double s1, double s2) {
+        if (s1 == Double.POSITIVE_INFINITY && s2 == Double.POSITIVE_INFINITY)
+            return true;
         return s1 * s2 >= 0 && Math.abs(s1 - s2) <= 0.000001;
     }
 
@@ -159,6 +176,6 @@ public class FastCollinearPoints {
         }
         StdDraw.show();
 
-        StdOut.println("-end");
+        StdOut.println("// end");
     }
 }
