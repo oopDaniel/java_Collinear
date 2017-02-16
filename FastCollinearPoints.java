@@ -25,23 +25,25 @@ public class FastCollinearPoints {
 
     // Determine the segment and its initial point
     private Point[] points;
-    private Point[] segmentPoints = new Point[3];
 
     // Slope and initial points for each line
-    private HashMap<Double, ArrayList<Point>> slopes = new HashMap<Double, ArrayList<Point>>();
+    private HashMap<Double, ArrayList<Point[]>> slopes = new HashMap<Double, ArrayList<Point[]>>();
 
     // Finds all line segments containing at least 4 points
     public FastCollinearPoints(Point[] inPoints) {
         if (inPoints == null) throw new java.lang.NullPointerException();
 
-        int    len = inPoints.length,
-               count,
-               next;
-        double slope;
+        int len = inPoints.length,
+            count,
+            next,
+            begin,
+            offset;
+        double slope,
+               curSlope;
         Point  curr;
         points = new Point[len];
 
-        // check null points
+        // check null points & copy
         for (int i = 0; i < len; ++i) {
             if (inPoints[i] == null) {
                 throw new java.lang.NullPointerException();
@@ -49,89 +51,84 @@ public class FastCollinearPoints {
             points[i] = inPoints[i];
         }
 
-        // Arrays.sort(points);
-
-        for (int i = 0; i < len; ++i) {
+        int lenMinusOne = len - 1;
+        for (int i = 0; i < lenMinusOne; ++i) {
             curr = points[i];
 
             // Default using merge sort for sorting objects in Java, O(n * log(n))
             Arrays.sort(points, i, len, curr.slopeOrder());
 
+            next  = i + 1;
+            begin = next;
+            count = 1;
+            slope = curr.slopeTo(points[next]);
 
-            // System.out.println("~~~~~~~~~~~~~~~~~~~~~~~");
-            // for (int j = i; j < len; ++j) {
-            //     System.out.println("Point: " + points[j] + ", SlopeTo:" + curr.slopeTo(points[j]));
-            // }
-            // System.out.println("~~~~~~~~~~~~~~~~~~~~~~~");
-
-            next = i + 1;
-            if (next < len && curr.slopeTo(points[next]) == Double.NEGATIVE_INFINITY) {
+            if (next < len && slope == Double.NEGATIVE_INFINITY) {
                 throw new java.lang.IllegalArgumentException();
             }
 
-            // System.out.println(">>> curr point: " + curr);
+            for (; next < len; ++next) {
+                curSlope = curr.slopeTo(points[next]);
 
-            for (; next < len;) {
-                int begin = next;
-                count = 1; // Current point
-                slope = curr.slopeTo(points[next]);
-                // System.out.println(" Slope: " + slope);
-
-                do {
-                    // System.out.println(" - step on " + points[next]);
+                if (hasSameSlope(curSlope, slope)) {
                     ++count;
-                    ++next;
-                } while (next < len && hasSameSlope(slope, curr.slopeTo(points[next])));
+                } else {
+                    if (count > 3) addSegment(points, curr, slope, begin, next - 1);
 
-                if (count > 2) {
-                    Arrays.sort(points, begin, next);
-                    --next;
-                }
-
-                // System.out.println(" count: "+count+", next: "+next);
-
-                // At least 4 points
-                if (count > 3) {
-                    boolean isDuplicated = false;
-                    ArrayList<Point> initialPoints = slopes.get(slope);
-                    if (initialPoints == null) {
-                        initialPoints = new ArrayList<Point>();
-                    }
-
-                    // for (int ii = begin; ii < next + 1; ii++) {
-                    //     System.out.println("P:" + points[ii] + ", slope: "+ curr.slopeTo(points[ii]));
-                    // }
-
-                    segmentPoints[0] = curr;
-                    segmentPoints[1] = points[begin];
-                    segmentPoints[2] = points[next];
-                    Arrays.sort(segmentPoints);
-
-                    for (Point p : initialPoints) {
-                        // System.out.println("init points: " + p + ", slope: " + slope);
-                        // Has the same slope to the initial point, thus collinear
-                        if (hasSameSlope(slope, segmentPoints[0].slopeTo(p)) ||
-                            hasSameSlope(slope, segmentPoints[2].slopeTo(p))) {
-                            isDuplicated = true;
-                            break;
-                        }
-                    }
-
-                    // for (Point p : segmentPoints) {
-                    //     System.out.println("seg points: " + p );
-                    // }
-
-                    if (!isDuplicated) {
-                        // System.out.println("@@ no Duplicated!! will save" + segmentPoints[0] + segmentPoints[2]);
-                        initialPoints.add(segmentPoints[0]);
-                        initialPoints.add(segmentPoints[2]);
-                        slopes.put(slope, initialPoints);
-                        segments.add(new LineSegment(segmentPoints[0], segmentPoints[2]));
-                    }
+                    begin = next;
+                    slope = curSlope;
+                    count = 2;
                 }
             }
+
+            if (count > 3) addSegment(points, curr, slope, begin, len - 1);
+        }
+    }
+
+    /**
+     * Calculate the comparing double result and return true if it's the same slope
+     * @param  s1 slope to compare
+     * @param  s2 slope to compare
+     * @return the boolean representation of the same slope
+     */
+    private void addSegment(Point[] p, Point origin, double slope, int base, int offset) {
+        Point start, end;
+        Point[] pair;
+        ArrayList<Point[]> endPoints;
+        boolean shouldAdd = false;
+
+        Arrays.sort(points, base, offset + 1);
+
+        start = points[base];
+        end   = points[offset];
+
+        if (origin.compareTo(start) < 0) start = origin;
+        if (origin.compareTo(end) > 0)   end   = origin;
+
+        endPoints = slopes.get(slope);
+
+        if (endPoints == null) {
+            endPoints = new ArrayList<Point[]>();
+            shouldAdd = true;
         }
 
+        if (shouldAdd || !isCollinear(endPoints, start)) {
+            pair    = new Point[2];
+            pair[0] = start;
+            pair[1] = end;
+
+            endPoints.add(pair);
+            slopes.put(slope, endPoints);
+            segments.add(new LineSegment(pair[0], pair[1]));
+        }
+    }
+
+    private boolean isCollinear(ArrayList<Point[]> endPoints, Point p) {
+        for (Point[] pair: endPoints) {
+            if (hasSameSlope(pair[0].slopeTo(pair[1]), pair[0].slopeTo(p)))
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -142,7 +139,7 @@ public class FastCollinearPoints {
      */
     private boolean hasSameSlope(double s1, double s2) {
         return (s1 == Double.POSITIVE_INFINITY && s2 == Double.POSITIVE_INFINITY)
-            || (s1 * s2 >= 0 && Math.abs(s1 - s2) <= 0.000001);
+            || (s1 * s2 >= 0 && Math.abs(s1 - s2) <= 0.000000001);
     }
 
     /**
