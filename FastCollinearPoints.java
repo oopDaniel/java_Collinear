@@ -142,7 +142,7 @@ public class FastCollinearPoints {
      */
     private boolean hasSameSlope(double s1, double s2) {
         return (s1 == Double.POSITIVE_INFINITY && s2 == Double.POSITIVE_INFINITY)
-            || (s1 * s2 >= 0 && Math.abs(s1 - s2) <= 0.000001);
+            || (s1 * s2 >= 0 && Math.abs(s1 - s2) <= 0.000000001);
     }
 
     /**
